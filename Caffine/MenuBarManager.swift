@@ -31,8 +31,7 @@ class MenuBarManager: NSObject, NSPopoverDelegate {
         popover.delegate = self
 
         if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "cup.and.saucer", accessibilityDescription: "Caffeine")
-            button.image?.isTemplate = true
+            button.image = Self.menuBarImage(named: "cup-empty")
             button.action = #selector(togglePopover)
             button.target = self
         }
@@ -53,11 +52,15 @@ class MenuBarManager: NSObject, NSPopoverDelegate {
     }
 
     private func updateIcon(active: Bool) {
-        let name = active ? "cup.and.saucer.fill" : "cup.and.saucer"
-        let image = NSImage(systemSymbolName: name, accessibilityDescription: "Caffeine")
-        image?.isTemplate = true
-        statusItem.button?.image = image
+        statusItem.button?.image = Self.menuBarImage(named: active ? "cup-active" : "cup-empty")
         updateTitle()
+    }
+
+    private static func menuBarImage(named name: String) -> NSImage? {
+        guard let image = NSImage(named: name) else { return nil }
+        image.isTemplate = true
+        image.size = NSSize(width: 16, height: 16)
+        return image
     }
 
     private func updateTitle() {
