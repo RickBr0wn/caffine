@@ -1,6 +1,6 @@
 import Foundation
 
-enum Duration: CaseIterable, Hashable {
+enum Duration: String, CaseIterable, Hashable {
     case fifteenMinutes, thirtyMinutes, oneHour, twoHours, fiveHours, indefinite
 
     var seconds: TimeInterval? {
@@ -28,13 +28,24 @@ enum Duration: CaseIterable, Hashable {
 
 class TimerManager: ObservableObject {
     static let shared = TimerManager()
-    @Published var selectedDuration: Duration = .indefinite
+    @Published var selectedDuration: Duration
     @Published var remainingSeconds: Int? = nil
     var onExpiry: (() -> Void)?
 
     private var timer: Timer?
+    private static let durationKey = "lastUsedDuration"
+
+    init() {
+        if let raw = UserDefaults.standard.string(forKey: Self.durationKey),
+           let saved = Duration(rawValue: raw) {
+            selectedDuration = saved
+        } else {
+            selectedDuration = .indefinite
+        }
+    }
 
     func start(duration: Duration) {
+        UserDefaults.standard.set(duration.rawValue, forKey: Self.durationKey)
         selectedDuration = duration
         timer?.invalidate()
         timer = nil
