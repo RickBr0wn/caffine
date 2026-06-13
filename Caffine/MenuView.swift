@@ -5,8 +5,8 @@ struct MenuView: View {
     @ObservedObject var caffeineManager: CaffeineManager
     @ObservedObject var timerManager: TimerManager
     @State private var showDuration = false
+    @State private var showAbout = false
     @State private var settingsExpanded = true
-    @State private var isOn = false
     @AppStorage("activateAtLaunch") private var activateAtLaunch = false
     @AppStorage("deactivateOnLock") private var deactivateOnLock = false
     @State private var loginEnabled = SMAppService.mainApp.status == .enabled
@@ -19,6 +19,8 @@ struct MenuView: View {
                     caffeineManager: caffeineManager,
                     showDuration: $showDuration
                 )
+            } else if showAbout {
+                AboutView(showAbout: $showAbout)
             } else {
                 mainView
             }
@@ -34,12 +36,9 @@ struct MenuView: View {
                     .font(.headline)
                     .fontWeight(.bold)
                 Spacer()
-                Toggle("", isOn: $isOn)
-                    .toggleStyle(.switch)
-                    .labelsHidden()
-                    .onAppear { isOn = caffeineManager.isActive }
-                    .onChange(of: isOn) { newValue in
-                        guard newValue != caffeineManager.isActive else { return }
+                Toggle("", isOn: Binding(
+                    get: { caffeineManager.isActive },
+                    set: { newValue in
                         if newValue {
                             caffeineManager.activate()
                             timerManager.start(duration: timerManager.selectedDuration)
@@ -48,9 +47,9 @@ struct MenuView: View {
                             timerManager.stop()
                         }
                     }
-                    .onChange(of: caffeineManager.isActive) { newValue in
-                        isOn = newValue
-                    }
+                ))
+                .toggleStyle(.switch)
+                .labelsHidden()
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 14)
@@ -98,7 +97,7 @@ struct MenuView: View {
 
             menuDivider
 
-            HoverRow(action: { NSApp.orderFrontStandardAboutPanel(nil) }) {
+            HoverRow(action: { showAbout = true }) {
                 Text("About").foregroundStyle(.primary)
             }
             HoverRow(action: { NSApplication.shared.terminate(nil) }) {
@@ -178,6 +177,94 @@ struct SettingsRow: View {
                 }
                 Text(title).foregroundStyle(.primary)
                 Spacer()
+            }
+        }
+    }
+}
+
+struct AboutView: View {
+    @Binding var showAbout: Bool
+
+    private let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HoverRow(action: { showAbout = false }) {
+                HStack(spacing: 6) {
+                    Image(systemName: "chevron.left").font(.caption)
+                    Text("About").font(.headline).fontWeight(.bold)
+                }
+                .foregroundStyle(.primary)
+            }
+
+            Divider().opacity(0.3)
+
+            VStack(spacing: 16) {
+                VStack(spacing: 6) {
+                    Text("☕").font(.system(size: 40))
+                    Text("Caffeine")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                    Text("v\(version)")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                }
+                .padding(.top, 8)
+
+                Text("Keeps your Mac wide awake,\none cup at a time.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+
+                Divider().opacity(0.3)
+
+                VStack(spacing: 0) {
+                    AboutLink(
+                        systemIcon: "chevron.left.forwardslash.chevron.right",
+                        label: "Source on GitHub",
+                        url: "https://github.com/RickBr0wn/caffeine"
+                    )
+                    AboutLink(
+                        systemIcon: "cup.and.saucer.fill",
+                        label: "Buy me a coffee",
+                        url: "https://buymeacoffee.com/RickBrown"
+                    )
+                    AboutLink(
+                        systemIcon: "briefcase.fill",
+                        label: "Hire me. No seriously.",
+                        url: "mailto:ricky.brown.00@gmail.com"
+                    )
+                }
+
+                Text("Built with ☕ and SwiftUI")
+                    .font(.caption2)
+                    .foregroundStyle(.quaternary)
+                    .padding(.bottom, 8)
+            }
+            .padding(.horizontal, 16)
+        }
+    }
+}
+
+struct AboutLink: View {
+    let systemIcon: String
+    let label: String
+    let url: String
+
+    var body: some View {
+        HoverRow(action: {
+            if let u = URL(string: url) { NSWorkspace.shared.open(u) }
+        }) {
+            HStack(spacing: 10) {
+                Image(systemName: systemIcon)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 18)
+                Text(label).foregroundStyle(.primary)
+                Spacer()
+                Image(systemName: "arrow.up.right")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
             }
         }
     }
