@@ -1,9 +1,10 @@
 import AppKit
 import Combine
-import ServiceManagement
+import SwiftUI
 
-class MenuBarManager {
+class MenuBarManager: NSObject {
     private var statusItem: NSStatusItem
+    private var popover: NSPopover
     private let caffeineManager: CaffeineManager
     private let timerManager: TimerManager
     private var cancellables = Set<AnyCancellable>()
@@ -11,32 +12,46 @@ class MenuBarManager {
     init(caffeineManager: CaffeineManager, timerManager: TimerManager) {
         self.caffeineManager = caffeineManager
         self.timerManager = timerManager
+
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        updateIcon()
-        buildMenu()
-        subscribe()
+
+        let menuView = MenuView(caffeineManager: caffeineManager, timerManager: timerManager)
+            .preferredColorScheme(.dark)
+        let hosting = NSHostingController(rootView: menuView)
+        hosting.sizingOptions = .preferredContentSize
+
+        popover = NSPopover()
+        popover.behavior = .transient
+        popover.appearance = NSAppearance(named: .darkAqua)
+        popover.contentViewController = hosting
+
+        super.init()
+
+        if let button = statusItem.button {
+            button.image = NSImage(systemSymbolName: "cup.and.saucer", accessibilityDescription: "Caffine")
+            button.image?.isTemplate = true
+            button.action = #selector(togglePopover)
+            button.target = self
+        }
+
+        subscribeToChanges()
     }
 
-    private func subscribe() {
+    private func subscribeToChanges() {
         caffeineManager.$isActive
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                self?.updateIcon()
-                self?.buildMenu()
-            }
+            .sink { [weak self] active in self?.updateIcon(active: active) }
             .store(in: &cancellables)
 
         timerManager.$remainingSeconds
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                self?.updateTitle()
-            }
+            .sink { [weak self] _ in self?.updateTitle() }
             .store(in: &cancellables)
     }
 
-    private func updateIcon() {
-        let symbolName = caffeineManager.isActive ? "cup.and.saucer.fill" : "cup.and.saucer"
-        let image = NSImage(systemSymbolName: symbolName, accessibilityDescription: "Caffine")
+    private func updateIcon(active: Bool) {
+        let name = active ? "cup.and.saucer.fill" : "cup.and.saucer"
+        let image = NSImage(systemSymbolName: name, accessibilityDescription: "Caffine")
         image?.isTemplate = true
         statusItem.button?.image = image
         updateTitle()
@@ -50,75 +65,11 @@ class MenuBarManager {
         }
     }
 
-    func buildMenu() {
-        let menu = NSMenu()
-
-        let toggleTitle = caffeineManager.isActive ? "Caffine is ON" : "Caffine is OFF"
-        let toggleItem = NSMenuItem(title: toggleTitle, action: #selector(toggleCaffine), keyEquivalent: "")
-        toggleItem.target = self
-        toggleItem.state = caffeineManager.isActive ? .on : .off
-        menu.addItem(toggleItem)
-
-        menu.addItem(.separator())
-
-        let header = NSMenuItem(title: "Active for:", action: nil, keyEquivalent: "")
-        header.isEnabled = false
-        menu.addItem(header)
-
-        for duration in Duration.allCases {
-            let item = NSMenuItem(title: "  \(duration.label)", action: #selector(selectDuration(_:)), keyEquivalent: "")
-            item.target = self
-            item.representedObject = duration
-            item.state = (caffeineManager.isActive && timerManager.selectedDuration == duration) ? .on : .off
-            menu.addItem(item)
+    @objc private func togglePopover() {
+        if popover.isShown {
+            popover.performClose(nil)
+        } else if let button = statusItem.button {
+            popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         }
-
-        menu.addItem(.separator())
-
-        let loginItem = NSMenuItem(title: "Launch at Login", action: #selector(toggleLaunchAtLogin), keyEquivalent: "")
-        loginItem.target = self
-        loginItem.state = isLoginEnabled ? .on : .off
-        menu.addItem(loginItem)
-
-        menu.addItem(.separator())
-
-        menu.addItem(NSMenuItem(title: "Quit Caffine", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
-
-        statusItem.menu = menu
-    }
-
-    @objc private func toggleCaffine() {
-        if caffeineManager.isActive {
-            caffeineManager.deactivate()
-            timerManager.stop()
-        } else {
-            caffeineManager.activate()
-            timerManager.start(duration: timerManager.selectedDuration)
-        }
-    }
-
-    @objc private func selectDuration(_ sender: NSMenuItem) {
-        guard let duration = sender.representedObject as? Duration else { return }
-        timerManager.start(duration: duration)
-        if !caffeineManager.isActive {
-            caffeineManager.activate()
-        }
-    }
-
-    @objc private func toggleLaunchAtLogin() {
-        do {
-            if isLoginEnabled {
-                try SMAppService.mainApp.unregister()
-            } else {
-                try SMAppService.mainApp.register()
-            }
-            buildMenu()
-        } catch {
-            // User can manage this in System Settings > General > Login Items
-        }
-    }
-
-    private var isLoginEnabled: Bool {
-        SMAppService.mainApp.status == .enabled
     }
 }

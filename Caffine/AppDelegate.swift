@@ -10,6 +10,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         timerManager.onExpiry = { [weak self] in
             self?.caffeineManager.deactivate()
         }
+        if UserDefaults.standard.bool(forKey: "activateAtLaunch") {
+            caffeineManager.activate()
+            timerManager.start(duration: timerManager.selectedDuration)
+        }
     }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
