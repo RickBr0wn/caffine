@@ -7,6 +7,7 @@ struct MenuView: View {
     @State private var showDuration = false
     @State private var settingsExpanded = true
     @AppStorage("activateAtLaunch") private var activateAtLaunch = false
+    @State private var loginEnabled = SMAppService.mainApp.status == .enabled
 
     var body: some View {
         Group {
@@ -70,7 +71,7 @@ struct MenuView: View {
             }
 
             if settingsExpanded {
-                SettingsRow(icon: "power", active: isLoginEnabled, title: "Launch at login", action: toggleLogin)
+                SettingsRow(icon: "power", active: loginEnabled, title: "Launch at login", action: toggleLogin)
                 SettingsRow(icon: "bolt.fill", active: activateAtLaunch, title: "Activate at launch") {
                     activateAtLaunch.toggle()
                 }
@@ -102,10 +103,17 @@ struct MenuView: View {
         )
     }
 
-    private var isLoginEnabled: Bool { SMAppService.mainApp.status == .enabled }
-
     private func toggleLogin() {
-        try? isLoginEnabled ? SMAppService.mainApp.unregister() : SMAppService.mainApp.register()
+        do {
+            if loginEnabled {
+                try SMAppService.mainApp.unregister()
+            } else {
+                try SMAppService.mainApp.register()
+            }
+            loginEnabled.toggle()
+        } catch {
+            // operation failed; loginEnabled stays unchanged so icon stays correct
+        }
     }
 
     private var menuDivider: some View { Divider().opacity(0.3) }

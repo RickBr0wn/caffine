@@ -62,6 +62,7 @@ class TimerManager: ObservableObject {
             timer?.invalidate()
             timer = nil
             remainingSeconds = nil
+            selectedDuration = .indefinite
             onExpiry?()
         } else {
             remainingSeconds = next

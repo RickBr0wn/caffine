@@ -2,12 +2,13 @@ import AppKit
 import Combine
 import SwiftUI
 
-class MenuBarManager: NSObject {
+class MenuBarManager: NSObject, NSPopoverDelegate {
     private var statusItem: NSStatusItem
     private var popover: NSPopover
     private let caffeineManager: CaffeineManager
     private let timerManager: TimerManager
     private var cancellables = Set<AnyCancellable>()
+    private var popoverClosedAt: Date = .distantPast
 
     init(caffeineManager: CaffeineManager, timerManager: TimerManager) {
         self.caffeineManager = caffeineManager
@@ -26,6 +27,8 @@ class MenuBarManager: NSObject {
         popover.contentViewController = hosting
 
         super.init()
+
+        popover.delegate = self
 
         if let button = statusItem.button {
             button.image = NSImage(systemSymbolName: "cup.and.saucer", accessibilityDescription: "Caffeine")
@@ -68,8 +71,14 @@ class MenuBarManager: NSObject {
     @objc private func togglePopover() {
         if popover.isShown {
             popover.performClose(nil)
-        } else if let button = statusItem.button {
-            popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+        } else if Date().timeIntervalSince(popoverClosedAt) > 0.15 {
+            if let button = statusItem.button {
+                popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+            }
         }
+    }
+
+    func popoverDidClose(_ notification: Notification) {
+        popoverClosedAt = Date()
     }
 }
