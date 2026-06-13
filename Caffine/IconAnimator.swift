@@ -5,9 +5,12 @@ class IconAnimator {
 
     func animate(toActive: Bool, button: NSStatusBarButton) {
         animationTimer?.invalidate()
-        let frames = (0...3).map { makeFrame(wispCount: $0) }
-        let sequence = toActive ? Array(frames) : Array(frames.reversed())
-        play(sequence, index: 0, button: button)
+        if toActive {
+            let frames = (0...3).map { makeFrame(wispCount: $0) }
+            play(frames, index: 0, button: button)
+        } else {
+            button.image = makeFrame(wispCount: 0)
+        }
     }
 
     private func play(_ frames: [NSImage], index: Int, button: NSStatusBarButton) {
