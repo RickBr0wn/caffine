@@ -9,6 +9,8 @@ class MenuBarManager: NSObject, NSPopoverDelegate {
     private let timerManager: TimerManager
     private var cancellables = Set<AnyCancellable>()
     private var popoverClosedAt: Date = .distantPast
+    private let iconAnimator = IconAnimator()
+    private var previousActiveState: Bool? = nil
 
     init(caffeineManager: CaffeineManager, timerManager: TimerManager) {
         self.caffeineManager = caffeineManager
@@ -52,7 +54,13 @@ class MenuBarManager: NSObject, NSPopoverDelegate {
     }
 
     private func updateIcon(active: Bool) {
-        statusItem.button?.image = Self.menuBarImage(named: active ? "cup-active" : "cup-empty")
+        guard let button = statusItem.button else { return }
+        if let prev = previousActiveState, prev != active {
+            iconAnimator.animate(toActive: active, button: button)
+        } else if previousActiveState == nil {
+            button.image = Self.menuBarImage(named: active ? "cup-active" : "cup-empty")
+        }
+        previousActiveState = active
         updateTitle()
     }
 

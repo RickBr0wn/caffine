@@ -16,6 +16,7 @@
 		1234567890ABCDEF00000028 /* MenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1234567890ABCDEF00000018 /* MenuView.swift */; };
 		1234567890ABCDEF00000029 /* CaffeineIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1234567890ABCDEF00000019 /* CaffeineIntents.swift */; };
 		1234567890ABCDEF00000030 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1234567890ABCDEF00000020 /* NotificationManager.swift */; };
+		1234567890ABCDEF00000031 /* IconAnimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1234567890ABCDEF00000021 /* IconAnimator.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +31,7 @@
 		1234567890ABCDEF00000018 /* MenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuView.swift; sourceTree = "<group>"; };
 		1234567890ABCDEF00000019 /* CaffeineIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaffeineIntents.swift; sourceTree = "<group>"; };
 		1234567890ABCDEF00000020 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
+		1234567890ABCDEF00000021 /* IconAnimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconAnimator.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -64,6 +66,7 @@
 				1234567890ABCDEF00000018 /* MenuView.swift */,
 				1234567890ABCDEF00000019 /* CaffeineIntents.swift */,
 				1234567890ABCDEF00000020 /* NotificationManager.swift */,
+				1234567890ABCDEF00000021 /* IconAnimator.swift */,
 			);
 			path = Caffine;
 			sourceTree = "<group>";
@@ -153,6 +156,7 @@
 				1234567890ABCDEF00000028 /* MenuView.swift in Sources */,
 				1234567890ABCDEF00000029 /* CaffeineIntents.swift in Sources */,
 				1234567890ABCDEF00000030 /* NotificationManager.swift in Sources */,
+				1234567890ABCDEF00000031 /* IconAnimator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
