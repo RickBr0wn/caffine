@@ -7,9 +7,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         CaffeineShortcutsProvider.updateAppShortcutParameters()
+        NotificationManager.requestPermission()
         menuBarManager = MenuBarManager(caffeineManager: caffeineManager, timerManager: timerManager)
         timerManager.onExpiry = { [weak self] in
             self?.caffeineManager.deactivate()
+            NotificationManager.sendExpiryNotification()
         }
         if UserDefaults.standard.bool(forKey: "activateAtLaunch") {
             caffeineManager.activate()
