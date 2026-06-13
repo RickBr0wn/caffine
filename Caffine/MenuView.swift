@@ -7,6 +7,7 @@ struct MenuView: View {
     @State private var showDuration = false
     @State private var settingsExpanded = true
     @AppStorage("activateAtLaunch") private var activateAtLaunch = false
+    @AppStorage("deactivateOnLock") private var deactivateOnLock = false
     @State private var loginEnabled = SMAppService.mainApp.status == .enabled
 
     var body: some View {
@@ -74,6 +75,9 @@ struct MenuView: View {
                 SettingsRow(icon: "power", active: loginEnabled, title: "Launch at login", action: toggleLogin)
                 SettingsRow(icon: "bolt.fill", active: activateAtLaunch, title: "Activate at launch") {
                     activateAtLaunch.toggle()
+                }
+                SettingsRow(icon: "lock.fill", active: deactivateOnLock, title: "Deactivate on lock") {
+                    deactivateOnLock.toggle()
                 }
             }
 
